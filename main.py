@@ -4,7 +4,7 @@ import pygame
 import game
 
 size = width, height = 800, 800
-cell_size = 10
+cell_size = 100
 font_size = 24
 font_height, font_width = font_size, int(font_size*0.55 + 0.5)
 
@@ -14,7 +14,17 @@ black = 0, 0, 0
 white = 255, 255, 255
 
 
-def main():
+def draw_grid(disp, grid):
+    for (i, j), cell in np.ndenumerate(grid.grid):
+        pygame.draw.rect(disp, black, (j*cell_size, i*cell_size, cell_size, cell_size), width=(0 if cell else 1))
+
+
+def change_grid(grid, mousex, mousey):
+    row, col = mousey//cell_size, mousex//cell_size
+    grid.swap_cell_state(row, col)
+
+
+def main(grid):
     pygame.init()
     disp = pygame.display.set_mode((int(width*1.25), height))
     pygame.display.update()
@@ -50,10 +60,13 @@ def main():
                     print('stop')
                 elif (reset_rect.left <= mousex <= reset_rect.right) and (reset_rect.top <= mousey <= reset_rect.bottom):
                     print('reset')
+                elif (0 <= mousex <= width) and (0 <= mousey <= height):
+                    change_grid(grid, mousex, mousey)
 
-        pygame.draw.rect(disp, green, (15, 45, 60, 90))
+        disp.fill(white)
         pygame.draw.line(disp, black, (800, 0), (800, 800))
-        pygame.draw.line(disp, black, (0, 45), (1000, 45))
+
+        draw_grid(disp, grid)
 
         disp.blit(start_text, start_rect)
         disp.blit(stop_text, stop_rect)
@@ -63,4 +76,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    grid_size = width//cell_size, height//cell_size
+    board = game.Grid(grid_size)
+    main(board)
