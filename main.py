@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 import pygame
-import game
+import life
 
 size = width, height = 800, 800
 cell_size = 100
@@ -77,5 +77,5 @@ def main(grid):
 
 if __name__ == '__main__':
     grid_size = width//cell_size, height//cell_size
-    board = game.Grid(grid_size)
+    board = life.Grid(grid_size)
     main(board)
