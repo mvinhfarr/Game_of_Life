@@ -75,3 +75,6 @@ class Grid:
 
     def reset_grid(self):
         self.grid = np.zeros(self.size, dtype=np.bool_)
+
+    # def change_edge_strat(self, strat):
+    # def fill_random(self, density, spread=None):
