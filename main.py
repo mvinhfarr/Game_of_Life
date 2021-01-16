@@ -15,6 +15,7 @@ white = 255, 255, 255
 
 
 def draw_grid(disp, grid):
+    # will need to add how to draw grid when edge strategy is finite+1
     for (i, j), cell in np.ndenumerate(grid.grid):
         pygame.draw.rect(disp, black, (j*cell_size, i*cell_size, cell_size, cell_size), width=(0 if cell else 1))
 
@@ -25,25 +26,29 @@ def change_grid(grid, mousex, mousey):
 
 
 def main(grid):
+    # Initialize the pygame window. Size is the size of the grid plus a menu bar on the right
     pygame.init()
     disp = pygame.display.set_mode((int(width*1.25), height))
     pygame.display.update()
     pygame.display.set_caption('Game of Life -- MVF')
     disp.fill(white)
 
+    # Initialize font and render text for buttons
     font = pygame.font.SysFont('consolas', size=font_size)
     start_text = font.render('Start', True, black, green)
     stop_text = font.render('Stop', True, black, red)
     reset_text = font.render('Reset', True, black, white)
 
-    button_xpos = width + (disp.get_width() - width) // 2
-    button_ypos = 10 + int(font_height*1.5)
-    start_rect = start_text.get_rect()
+    # Generate rectangles representing the position of the ubttons
+    button_xpos = width + (disp.get_width() - width) // 2  # x position for the center of all the buttons
+    button_ypos = 10 + int(font_height*1.5)  # y position of the center of the top button (start)
+
+    start_rect = start_text.get_rect()  # Get the rectangle that describes each button's text
     stop_rect = stop_text.get_rect()
     reset_rect = reset_text.get_rect()
 
-    start_rect.center = button_xpos, button_ypos
-    stop_rect.center = button_xpos, button_ypos + 2*font_height
+    start_rect.center = button_xpos, button_ypos  # Set the coordinates of the center of each rectangle
+    stop_rect.center = button_xpos, button_ypos + 2*font_height  # Include spacing of one button height
     reset_rect.center = button_xpos, button_ypos + 4*font_height
 
     while True:
@@ -59,7 +64,7 @@ def main(grid):
                 elif (stop_rect.left <= mousex <= stop_rect.right) and (stop_rect.top <= mousey <= stop_rect.bottom):
                     print('stop')
                 elif (reset_rect.left <= mousex <= reset_rect.right) and (reset_rect.top <= mousey <= reset_rect.bottom):
-                    print('reset')
+                    grid.reset_grid()
                 elif (0 <= mousex <= width) and (0 <= mousey <= height):
                     change_grid(grid, mousex, mousey)
 

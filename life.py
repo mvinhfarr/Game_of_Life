@@ -30,7 +30,7 @@ class Grid:
         neighbours_idx = (i - 1, i - 1, i - 1, i, i, i + 1, i + 1, i + 1),\
                          (j - 1, j - 1, j - 1, j, j, j + 1, j + 1, j + 1)
 
-        if self.edge_strat is not 'toroidal' and ((i == (0 | self.height - 1)) or (j == (0 | self.width - 1))):
+        if self.edge_strat != 'toroidal' and ((i == (0 | self.height - 1)) or (j == (0 | self.width - 1))):
             filtered_idx = tuple((ni, nj) for ni, nj in zip(neighbours_idx[0], neighbours_idx[1]) if ((ni & nj) > 0) & (ni < self.height) & (nj < self.width))
             neighbours_idx = tuple(zip(*filtered_idx))
 
