@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Grid:
-    def __init__(self, shape=(100, 100), arr=None, edge_strat='finite'):
+    def __init__(self, shape=(100, 100), arr=None, edge_strat='toroidal'):
         strats = ['finite', 'finite+1', 'toroidal']
         if edge_strat not in strats:
             raise ValueError('Invalid edge stratege. Expected one of %s' % strats)
@@ -27,12 +27,19 @@ class Grid:
         return np.concatenate((new_col, temp, new_col), axis=1)
 
     def get_neighbours_finite(self, i, j):
-        neighbours_idx = (i - 1, i - 1, i - 1, i, i, i + 1, i + 1, i + 1),\
-                         (j - 1, j - 1, j - 1, j, j, j + 1, j + 1, j + 1)
+        neighbours_idx = (i-1, i-1, i-1, i,   i,   i+1, i+1, i+1),\
+                         (j-1, j,   j+1, j-1, j+1, j-1, j,   j+1)
 
-        if self.edge_strat != 'toroidal' and ((i == (0 | self.height - 1)) or (j == (0 | self.width - 1))):
-            filtered_idx = tuple((ni, nj) for ni, nj in zip(neighbours_idx[0], neighbours_idx[1]) if ((ni & nj) > 0) & (ni < self.height) & (nj < self.width))
-            neighbours_idx = tuple(zip(*filtered_idx))
+        if self.edge_strat == 'toroidal':
+            if (i == self.height-1) | (j == self.height-1):
+                filtered_i = tuple(ni if ni < self.height else ni - self.height for ni in neighbours_idx[0])
+                filtered_j = tuple(nj if nj < self.height else nj - self.height for nj in neighbours_idx[1])
+                neighbours_idx = filtered_i, filtered_j
+        else:
+            if (i == 0) | (i == self.height - 1) | (j == 0) | (j == self.width - 1):
+                filtered_idx = tuple((ni, nj) for ni, nj in zip(neighbours_idx[0], neighbours_idx[1])
+                                     if (ni >= 0) & (nj >= 0) & (ni < self.height) & (nj < self.width))
+                neighbours_idx = tuple(zip(*filtered_idx))
 
         neighbours = self.grid[neighbours_idx]
         return neighbours

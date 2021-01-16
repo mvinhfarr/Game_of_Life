@@ -3,8 +3,14 @@ import numpy as np
 import pygame
 import life
 
+# board_size = board_rows, board_cols = 80, 80
+# cell_size = 100
+# size = width, height = board_cols*cell_size, board_rows*cell_size
+
 size = width, height = 800, 800
 cell_size = 100
+board_size = board_rows, board_cols = width // cell_size, height // cell_size
+
 font_size = 24
 font_height, font_width = font_size, int(font_size*0.55 + 0.5)
 
@@ -51,7 +57,16 @@ def main(grid):
     stop_rect.center = button_xpos, button_ypos + 2*font_height  # Include spacing of one button height
     reset_rect.center = button_xpos, button_ypos + 4*font_height
 
+    # MORE BUTTONS:
+    #   - edge strategy
+    #   - tick speed
+
+    simulate = False
+    clock = pygame.time.Clock()
+    tick_speed = 40
+
     while True:
+        clock.tick(tick_speed)
         mousex, mousey = pygame.mouse.get_pos()
 
         for event in pygame.event.get():
@@ -60,9 +75,11 @@ def main(grid):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONUP:
                 if (start_rect.left <= mousex <= start_rect.right) and (start_rect.top <= mousey <= start_rect.bottom):
-                    print('start')
+                    simulate = True
+                    tick_speed = 2
                 elif (stop_rect.left <= mousex <= stop_rect.right) and (stop_rect.top <= mousey <= stop_rect.bottom):
-                    print('stop')
+                    simulate = False
+                    tick_speed = 40
                 elif (reset_rect.left <= mousex <= reset_rect.right) and (reset_rect.top <= mousey <= reset_rect.bottom):
                     grid.reset_grid()
                 elif (0 <= mousex <= width) and (0 <= mousey <= height):
@@ -71,16 +88,18 @@ def main(grid):
         disp.fill(white)
         pygame.draw.line(disp, black, (800, 0), (800, 800))
 
-        draw_grid(disp, grid)
-
         disp.blit(start_text, start_rect)
         disp.blit(stop_text, stop_rect)
         disp.blit(reset_text, reset_rect)
+
+        if simulate:
+            grid.turn()
+
+        draw_grid(disp, grid)
 
         pygame.display.update()
 
 
 if __name__ == '__main__':
-    grid_size = width//cell_size, height//cell_size
-    board = life.Grid(grid_size)
+    board = life.Grid(board_size)
     main(board)
