@@ -22,6 +22,9 @@ black = 0, 0, 0
 white = 255, 255, 255
 grey = 215, 215, 215
 
+SIMULATEGENERATION = pygame.USEREVENT + 1
+sim_speed = 500
+
 
 def draw_grid(disp, grid):
     # will need to add how to draw grid when edge strategy is finite+1
@@ -82,17 +85,21 @@ def main(grid):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.MOUSEBUTTONUP:
+            elif event.type == pygame.MOUSEBUTTONUP:
                 if (start_button.left <= mousex <= start_button.right) and (start_button.top <= mousey <= start_button.bottom):
                     simulate = True
+                    pygame.time.set_timer(SIMULATEGENERATION, sim_speed)
                 elif (stop_button.left <= mousex <= stop_button.right) and (stop_button.top <= mousey <= stop_button.bottom):
                     simulate = False
+                    pygame.time.set_timer(SIMULATEGENERATION, 0)
                 elif (reset_button.left <= mousex <= reset_button.right) and (reset_button.top <= mousey <= reset_button.bottom):
                     if not simulate:
                         grid.reset_grid()
                 elif (0 <= mousex <= width) and (0 <= mousey <= height):  # Handle all mouse clicks on the grid
                     if not simulate:
                         change_grid(grid, mousex, mousey)
+            elif event.type == SIMULATEGENERATION:
+                grid.turn()
 
         disp.fill(white)
         pygame.draw.line(disp, black, (800, 0), (800, 800))
@@ -110,13 +117,13 @@ def main(grid):
         disp.blit(stop_text, stop_text_rect)
         disp.blit(reset_text, reset_text_rect)
 
-        if simulate:
-            grid.turn()
+
 
         draw_grid(disp, grid)
 
         if not grid.grid.any():
             simulate = False
+            pygame.time.set_timer(SIMULATEGENERATION, 0)
 
         pygame.display.update()
 
