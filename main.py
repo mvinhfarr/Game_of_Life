@@ -8,7 +8,7 @@ import life
 # size = width, height = board_cols*cell_size, board_rows*cell_size
 
 size = width, height = 800, 800
-cell_size = 100
+cell_size = 80
 board_size = board_rows, board_cols = width // cell_size, height // cell_size
 
 font_size = 24
@@ -23,7 +23,7 @@ white = 255, 255, 255
 grey = 215, 215, 215
 
 SIMULATEGENERATION = pygame.USEREVENT + 1
-sim_speed = 500
+sim_speed = 200
 
 
 def draw_grid(disp, grid):
@@ -45,8 +45,10 @@ def main(grid):
     pygame.display.set_caption('Game of Life -- MVF')
     disp.fill(white)
 
-    # Initialize font and render text for buttons
+    # Initialize font
     font = pygame.font.SysFont('consolas', size=font_size)
+
+    # Render control button text
     start_text = font.render('Start', True, black, None)
     stop_text = font.render('Stop', True, black, None)
     reset_text = font.render('Reset', True, black, None)
@@ -70,15 +72,30 @@ def main(grid):
     stop_button.center = stop_text_rect.center
     reset_button.center = reset_text_rect.center
 
+    strat_txt_left = width + (disp.get_width() - width) // 4
+    strat_txt_top = reset_button.bottom + 50
+    strat_ypad_factor = 1.5
+
+    strat_radius = font_height // 4
+
+    strat_opts = {}
+    for key, y_idx in zip(grid.strats, range(len(grid.strats))):
+        strat = {
+            'text': font.render(key, True, black, None),
+            'text_pos': (strat_txt_left, strat_txt_top + strat_ypad_factor*font_height*y_idx),
+            'circle_pos': (strat_txt_left - 3*strat_radius, strat_txt_top + strat_ypad_factor*font_height*y_idx + font_height//2)
+        }
+        strat_opts[key] = strat
+
+
     # MORE BUTTONS:
-    #   - edge strategy
     #   - tick speed
 
     simulate = False
     clock = pygame.time.Clock()
 
     while True:
-        clock.tick(100)
+        clock.tick(1000)
         mousex, mousey = pygame.mouse.get_pos()
 
         for event in pygame.event.get():
@@ -102,7 +119,7 @@ def main(grid):
                 grid.turn()
 
         disp.fill(white)
-        pygame.draw.line(disp, black, (800, 0), (800, 800))
+        pygame.draw.line(disp, black, (width, 0), (width, height))
 
         if simulate:
             pygame.draw.rect(disp, greyed_green, start_button)
@@ -113,11 +130,23 @@ def main(grid):
             pygame.draw.rect(disp, greyed_red, stop_button)
             pygame.draw.rect(disp, black, reset_button, width=1)
 
+
+
         disp.blit(start_text, start_text_rect)
         disp.blit(stop_text, stop_text_rect)
         disp.blit(reset_text, reset_text_rect)
 
+        # pygame.draw.circle(disp, black, toroidal_circle_pos, strat_radius, width=1)
+        # pygame.draw.circle(disp, black, finite_circle_pos, strat_radius, width=1)
+        # pygame.draw.circle(disp, black, finite_plus_circle_pos, strat_radius, width=1)
+        #
+        # disp.blit(toroidal_text, toroidal_pos)
+        # disp.blit(finite_text, finite_pos)
+        # disp.blit(finite_plus_text, finite_plus_pos)
 
+        for key, strat in strat_opts.items():
+            pygame.draw.circle(disp, black, strat['circle_pos'], strat_radius, width=0 if grid.edge_strat == key else 1)
+            disp.blit(strat['text'], strat['text_pos'])
 
         draw_grid(disp, grid)
 

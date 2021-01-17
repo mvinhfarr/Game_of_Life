@@ -3,9 +3,9 @@ import numpy as np
 
 class Grid:
     def __init__(self, shape=(100, 100), arr=None, edge_strat='toroidal'):
-        strats = ['finite', 'finite+1', 'toroidal']
-        if edge_strat not in strats:
-            raise ValueError('Invalid edge stratege. Expected one of %s' % strats)
+        self.strats = ['toroidal', 'finite', 'finite+1']
+        if edge_strat not in self.strats:
+            raise ValueError('Invalid edge stratege. Expected one of %s' % self.strats)
         self.edge_strat = edge_strat
 
         if arr is not None:
@@ -26,7 +26,7 @@ class Grid:
         temp = np.concatenate((new_row, self.grid, new_row), axis=0)
         return np.concatenate((new_col, temp, new_col), axis=1)
 
-    def get_neighbours_finite(self, i, j):
+    def get_neighbours(self, i, j):
         neighbours_idx = (i-1, i-1, i-1, i,   i,   i+1, i+1, i+1),\
                          (j-1, j,   j+1, j-1, j+1, j-1, j,   j+1)
 
@@ -54,7 +54,7 @@ class Grid:
         # 4. any dead cell with 3 live neighbours becomes alive
 
         for (i, j), cell in np.ndenumerate(self.grid):
-            neighbours = self.get_neighbours_finite(i, j)
+            neighbours = self.get_neighbours(i, j)
             live_neighbours = np.count_nonzero(neighbours)
 
             if cell:
@@ -76,5 +76,9 @@ class Grid:
     def reset_grid(self):
         self.grid = np.zeros(self.size, dtype=np.bool_)
 
-    # def change_edge_strat(self, strat):
+    def set_edge_strat(self, strat):
+        if strat not in self.strats:
+            raise ValueError('Invalid edge stratege. Expected one of %s' % self.strats)
+        self.edge_strat = strat
+
     # def fill_random(self, density, spread=None):
