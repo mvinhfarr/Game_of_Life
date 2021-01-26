@@ -84,6 +84,10 @@ def build_strategy_buttons(disp, font, grid, top_align):
     return strat_opts, bottom_rect
 
 
+def build_init_buttons(disp, font, grid):
+
+
+
 def draw_grid(disp, grid):
     # will need to add how to draw grid when edge strategy is finite+1
     for (i, j), cell in np.ndenumerate(grid.grid):
@@ -176,5 +180,5 @@ def main(grid):
 
 
 if __name__ == '__main__':
-    board = array_life.Grid(board_size)
+    board = array_life.Board(board_size)
     main(board)

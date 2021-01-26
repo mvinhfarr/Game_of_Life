@@ -1,7 +1,8 @@
+import random
 import numpy as np
 
 
-class Grid:
+class Board:
     def __init__(self, shape=(100, 100), arr=None, edge_strat='toroidal'):
         # self.strats = ['toroidal', 'finite', 'finite+1']
         self.strats = ['toroidal', 'finite']
@@ -10,31 +11,23 @@ class Grid:
         self.edge_strat = edge_strat
 
         if arr is not None:
-            self.size = self.width, self.height = arr.shape
+            self.size = self.height, self.width = arr.shape
             self.grid = arr
         else:
-            self.size = self.width, self.height = shape
-            self.grid = np.zeros((self.width, self.height), dtype=np.bool_)
+            self.size = self.height, self.width = shape
+            self.grid = np.zeros((self.height, self.width), dtype=np.bool_)
 
-    #     self.border = self.build_border()
-    #
-    # def build_border(self):
-    #     border = {}
-    #     ''
-    #
-    #     return border
-
-    def get_neighbours(self, i, j):
-        neighbours_idx = (i-1, i-1, i-1, i,   i,   i+1, i+1, i+1),\
-                         (j-1, j,   j+1, j-1, j+1, j-1, j,   j+1)
+    def get_neighbours(self, row, col):
+        neighbours_idx = (row - 1, row - 1, row - 1, row, row, row + 1, row + 1, row + 1),\
+                         (col - 1, col, col + 1, col - 1, col + 1, col - 1, col, col + 1)
 
         if self.edge_strat == 'toroidal':
-            if (i == self.height-1) | (j == self.height-1):
-                filtered_i = tuple(ni if ni < self.height else ni - self.height for ni in neighbours_idx[0])
-                filtered_j = tuple(nj if nj < self.height else nj - self.height for nj in neighbours_idx[1])
-                neighbours_idx = filtered_i, filtered_j
+            if (row == self.height - 1) | (col == self.width - 1):
+                filtered_rows = tuple(ni if ni < self.height else ni - self.height for ni in neighbours_idx[0])
+                filtered_cols = tuple(nj if nj < self.width else nj - self.width for nj in neighbours_idx[1])
+                neighbours_idx = filtered_rows, filtered_cols
         else:
-            if (i == 0) | (i == self.height - 1) | (j == 0) | (j == self.width - 1):
+            if (row == 0) | (row == self.height - 1) | (col == 0) | (col == self.width - 1):
                 filtered_idx = tuple((ni, nj) for ni, nj in zip(neighbours_idx[0], neighbours_idx[1])
                                      if (ni >= 0) & (nj >= 0) & (ni < self.height) & (nj < self.width))
                 neighbours_idx = tuple(zip(*filtered_idx))
@@ -79,4 +72,20 @@ class Grid:
             raise ValueError('Invalid edge stratege. Expected one of %s' % self.strats)
         self.edge_strat = strat
 
-    # def fill_random(self, density, spread=None):
+    def fill_random(self, count, spread=None):
+        if spread is None:
+            fill_rows = 0, self.height
+            fill_cols = 0, self.width
+        elif isinstance(spread, tuple) and len(spread) == 2:
+            center = self.height // 2, self.width // 2
+            half_spread = spread[0] // 2, spread[1] // 2
+            fill_rows = center[0] - half_spread[0], center[0] + half_spread[0]
+            fill_cols = center[1] - half_spread[1], center[1] + half_spread[1]
+        else:
+            raise ValueError('Invalid spread. Expected tuple of length 2 (range_rows, range_cols)')
+
+        rand_rows = random.sample(range(fill_rows[0], fill_rows[1]), count)
+        rand_cols = random.sample(range(fill_cols[0], fill_cols[1]), count)
+
+        for r, c in zip(rand_rows, rand_cols):
+            self.swap_cell_state(r, c)
