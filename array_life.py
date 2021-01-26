@@ -3,7 +3,8 @@ import numpy as np
 
 class Grid:
     def __init__(self, shape=(100, 100), arr=None, edge_strat='toroidal'):
-        self.strats = ['toroidal', 'finite', 'finite+1']
+        # self.strats = ['toroidal', 'finite', 'finite+1']
+        self.strats = ['toroidal', 'finite']
         if edge_strat not in self.strats:
             raise ValueError('Invalid edge stratege. Expected one of %s' % self.strats)
         self.edge_strat = edge_strat
@@ -15,16 +16,13 @@ class Grid:
             self.size = self.width, self.height = shape
             self.grid = np.zeros((self.width, self.height), dtype=np.bool_)
 
-        if edge_strat == 'finite+1':
-            self.grid = self.add_area()
-            self.size = self.width, self.height = self.grid.shape  # needs to be redefined 2nd
-
-    def add_area(self):
-        new_row = np.zeros((1, self.width))
-        new_col = np.zeros((self.height+2, 1))
-
-        temp = np.concatenate((new_row, self.grid, new_row), axis=0)
-        return np.concatenate((new_col, temp, new_col), axis=1)
+    #     self.border = self.build_border()
+    #
+    # def build_border(self):
+    #     border = {}
+    #     ''
+    #
+    #     return border
 
     def get_neighbours(self, i, j):
         neighbours_idx = (i-1, i-1, i-1, i,   i,   i+1, i+1, i+1),\

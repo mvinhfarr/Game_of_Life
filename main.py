@@ -1,14 +1,15 @@
 import sys
+import timeit
 import numpy as np
 import pygame
-import life
+import array_life
 
 # board_size = board_rows, board_cols = 80, 80
 # cell_size = 100
 # size = width, height = board_cols*cell_size, board_rows*cell_size
 
 size = width, height = 800, 800
-cell_size = 80
+cell_size = 20
 board_size = board_rows, board_cols = width // cell_size, height // cell_size
 
 font_size = 24
@@ -23,7 +24,8 @@ white = 255, 255, 255
 grey = 215, 215, 215
 
 SIMULATEGENERATION = pygame.USEREVENT + 1
-sim_speed = 200
+sim_speed = 10
+# ~77 ms per loop with
 
 
 def build_control_buttons(disp, font):
@@ -93,9 +95,6 @@ def change_grid(grid, mousex, mousey):
     grid.swap_cell_state(row, col)
 
 
-# def which_button(mousex, mousey, ):
-
-
 def main(grid):
     # Initialize the pygame window. Size is the size of the grid plus a menu bar on the right
     pygame.init()
@@ -116,14 +115,16 @@ def main(grid):
     simulate = False
     clock = pygame.time.Clock()
 
+    print(pygame.time.get_ticks())
+
     while True:
-        clock.tick(1000)
+        print(clock.tick())
         mousex, mousey = pygame.mouse.get_pos()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                # sys.exit()
+                sys.exit()
             elif event.type == pygame.MOUSEBUTTONUP:
                 if (control_bottom.left <= mousex <= control_bottom.right) and (mousey <= control_bottom.bottom):
                     if control_buttons['Start']['rect'].top <= mousey <= control_buttons['Start']['rect'].bottom:
@@ -136,18 +137,22 @@ def main(grid):
                         if not simulate:
                             grid.reset_grid()
                 elif (strat_bottom.left <= mousex) and (control_bottom.bottom <= mousey <= strat_bottom.bottom):
-                    new_strat = [key for key, strat in strat_opts.items() if (strat['hitbox'].left <= mousex <= strat['hitbox'].right) and (strat['hitbox'].top <= mousey <= strat['hitbox'].bottom)]
-                    if not new_strat:
-                        continue
-                    elif len(new_strat) > 1:
-                        raise Exception('Program error, two button strats clicked simultaneously?')
-                    else:
-                        grid.set_edge_strat(new_strat[0])
+                    new_strat = [key for key, strat in strat_opts.items()
+                                 if (strat['hitbox'].left <= mousex <= strat['hitbox'].right)
+                                 and (strat['hitbox'].top <= mousey <= strat['hitbox'].bottom)][0]
+                    grid.set_edge_strat(new_strat)
+                    # if not new_strat:
+                    #     continue
+                    # elif len(new_strat) > 1:
+                    #     raise Exception('Program error, two button strats clicked simultaneously?')
+                    # else:
+                    #     grid.set_edge_strat(new_strat[0])
                 elif (0 <= mousex <= width) and (0 <= mousey <= height):  # Handle all mouse clicks on the grid
                     if not simulate:
                         change_grid(grid, mousex, mousey)
             elif event.type == SIMULATEGENERATION:
                 grid.turn()
+                pygame.event.clear(SIMULATEGENERATION)
 
         disp.fill(white)
         pygame.draw.line(disp, black, (width, 0), (width, height))
@@ -171,5 +176,5 @@ def main(grid):
 
 
 if __name__ == '__main__':
-    board = life.Grid(board_size)
+    board = array_life.Grid(board_size)
     main(board)
