@@ -2,7 +2,10 @@ import sys
 import timeit
 import numpy as np
 import pygame
+
 import array_life
+# import vector_life
+import graphics
 
 # board_size = board_rows, board_cols = 80, 80
 # cell_size = 100
@@ -10,88 +13,52 @@ import array_life
 
 size = width, height = 800, 800
 cell_size = 20
-board_size = board_rows, board_cols = width // cell_size, height // cell_size
+board_size = board_rows, board_cols = height // cell_size, width // cell_size
 
 font_size = 24
 font_height, font_width = font_size, int(font_size * 0.55 + 0.5)
-
-green = 102, 255, 102
-greyed_green = 159, 186, 133
-red = 255, 77, 77
-greyed_red = 180, 128, 128
-black = 0, 0, 0
-white = 255, 255, 255
-grey = 215, 215, 215
 
 SIMULATEGENERATION = pygame.USEREVENT + 1
 sim_speed = 10
 # ~77 ms per loop with
 
 
-def build_control_buttons(disp, font):
-    button_xpos = width + (disp.get_width() - width) // 2  # x position for the center of all the buttons
-    button_ypos = 10 + int(font_height * 1.5)  # y position of the center of the top button (start)
-    button_ypad_factor = 2
+def build_control(disp, font):
+    xcenter = width + (disp.get_width() - width) // 2
+    top_ycenter = 10 + int(font_height * 1.5)
+    ypad = 2 * font_height
 
-    control_button_text = 'Start', 'Stop', 'Reset'
-    colors_sim = greyed_green, red, grey
-    colors_not_sim = green, greyed_red, black
+    labels = 'Start', 'Stop', 'Reset'
+    colors_true = graphics.GREEN, graphics.RED, graphics.GREY
+    colors_false = graphics.GREY_GREEN, graphics.GREY_RED, graphics.BLACK
+    # button_state = True, False, True
 
     control_buttons = {}
-    for n in range(len(control_button_text)):
-        button_text = font.render(control_button_text[n], True, black, None)
-        text_rect = button_text.get_rect()
-        text_rect.center = button_xpos, button_ypos + button_ypad_factor * font_height * n
-        button_rect = pygame.Rect(0, 0, font_width * 8, font_height * 1.2)
-        button_rect.center = text_rect.center
-        button_color = colors_not_sim[n], colors_sim[n]
-        button_width = 1 if button_color[0] == black else 0, 1 if button_color[1] == black else 0
-        button = {'text': button_text, 'text_pos': text_rect, 'rect': button_rect,
-                  'color': button_color, 'width': button_width}
-        control_buttons[control_button_text[n]] = button
+    for n in range(len(labels)):
+        button = graphics.BooleanButton(disp, font, labels[n], pos=(xcenter, top_ycenter + ypad*n),
+                                        size=(font_width * 8, font_height * 1.2),
+                                        color_true=colors_true[n], color_false=colors_false[n])
+        control_buttons[labels[n]] = button
 
-    bottom_rect = control_buttons[control_button_text[-1]]['rect']
-    return control_buttons, bottom_rect
+    bottom_y = control_buttons[labels[-1]].rect.bottom
+
+    return control_buttons, bottom_y
 
 
-def build_strategy_buttons(disp, font, grid, top_align):
-    strat_txt_left = width + (disp.get_width() - width) // 4
-    strat_txt_top = top_align + 50
-    strat_ypad_factor = 1.5
-    strat_xpad_factor = 3
+def build_strats(disp, font, grid, top):
+    left = width + (disp.get_width() - width) // 4
+    top = top + 50
+    xpad = 3
+    ypad = 1.5
 
-    strat_radius = font_height // 4
+    strats = graphics.RadioButtons(disp, font, grid.strats, pos=(left, top), xpad_factor=xpad, ypad_factor=ypad)
 
-    strat_opts = {}
-    for n in range(len(grid.strats)):
-        strat_text = font.render(grid.strats[n], True, black, None)
-        strat_text_pos = strat_txt_left, strat_txt_top + strat_ypad_factor * font_height * n
-        strat_circle_center = (strat_txt_left - strat_xpad_factor * strat_radius,
-                               strat_txt_top + strat_ypad_factor * font_height * n + font_height // 2)
-        strat_hitbox = pygame.Rect(strat_circle_center[0] - strat_radius, strat_text_pos[1],
-                                   strat_text.get_size()[0] + (strat_xpad_factor + 1) * strat_radius, font_height)
+    bottom_y = strats.buttons[strats.opts[-1]]['hitbox'].bottom
 
-        strat = {
-            'text': strat_text,
-            'text_pos': strat_text_pos,
-            'circle_pos': strat_circle_center,
-            'radius': strat_radius,
-            'hitbox': strat_hitbox
-        }
-        strat_opts[grid.strats[n]] = strat
+    return strats, bottom_y
 
-    bottom_rect = strat_opts[grid.strats[-1]]['hitbox']
-    return strat_opts, bottom_rect
-
-
-def build_init_buttons(disp, font, grid):
-
-
-
-def draw_grid(disp, grid):
-    # will need to add how to draw grid when edge strategy is finite+1
-    for (i, j), cell in np.ndenumerate(grid.grid):
-        pygame.draw.rect(disp, black, (j * cell_size, i * cell_size, cell_size, cell_size), width=(0 if cell else 1))
+# def build_init_buttons(disp, font, grid):
+#     fill_rand_text =
 
 
 def change_grid(grid, mousex, mousey):
@@ -105,16 +72,17 @@ def main(grid):
     disp = pygame.display.set_mode((int(width * 1.25), height))
     pygame.display.update()
     pygame.display.set_caption('Game of Life -- MVF')
-    disp.fill(white)
+    disp.fill(graphics.WHITE)
 
     # Initialize font
     font = pygame.font.SysFont('consolas', size=font_size)
 
-    control_buttons, control_bottom = build_control_buttons(disp, font)
-    strat_opts, strat_bottom = build_strategy_buttons(disp, font, grid, control_bottom.bottom)
+    control_buttons, control_bottom = build_control(disp, font)
+    strat_opts, strat_bottom = build_strats(disp, font, grid, control_bottom)
 
     # MORE BUTTONS:
     #   - tick speed
+    #   - init options
 
     simulate = False
     clock = pygame.time.Clock()
@@ -122,55 +90,53 @@ def main(grid):
     print(pygame.time.get_ticks())
 
     while True:
-        print(clock.tick())
-        mousex, mousey = pygame.mouse.get_pos()
+        # clock.tick(60)
+        # print(clock.tick())
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONUP:
-                if (control_bottom.left <= mousex <= control_bottom.right) and (mousey <= control_bottom.bottom):
-                    if control_buttons['Start']['rect'].top <= mousey <= control_buttons['Start']['rect'].bottom:
-                        simulate = True
-                        pygame.time.set_timer(SIMULATEGENERATION, sim_speed)
-                    elif control_buttons['Stop']['rect'].top <= mousey <= control_buttons['Stop']['rect'].bottom:
-                        simulate = False
-                        pygame.time.set_timer(SIMULATEGENERATION, 0)
-                    elif control_buttons['Reset']['rect'].top <= mousey <= control_buttons['Reset']['rect'].bottom:
-                        if not simulate:
-                            grid.reset_grid()
-                elif (strat_bottom.left <= mousex) and (control_bottom.bottom <= mousey <= strat_bottom.bottom):
-                    new_strat = [key for key, strat in strat_opts.items()
-                                 if (strat['hitbox'].left <= mousex <= strat['hitbox'].right)
-                                 and (strat['hitbox'].top <= mousey <= strat['hitbox'].bottom)][0]
-                    grid.set_edge_strat(new_strat)
-                    # if not new_strat:
-                    #     continue
-                    # elif len(new_strat) > 1:
-                    #     raise Exception('Program error, two button strats clicked simultaneously?')
-                    # else:
-                    #     grid.set_edge_strat(new_strat[0])
+                mousex, mousey = pygame.mouse.get_pos()
+
+                if control_buttons['Start'].rect.collidepoint(mousex, mousey):
+                    simulate = True
+                    pygame.time.set_timer(SIMULATEGENERATION, sim_speed)
+                elif control_buttons['Stop'].rect.collidepoint(mousex, mousey):
+                    simulate = False
+                    pygame.time.set_timer(SIMULATEGENERATION, 0)
+                elif control_buttons['Reset'].rect.collidepoint(mousex, mousey):
+                    if not simulate:
+                        grid.reset_grid()
                 elif (0 <= mousex <= width) and (0 <= mousey <= height):  # Handle all mouse clicks on the grid
                     if not simulate:
                         change_grid(grid, mousex, mousey)
+
+                new_strat = [key for key, strat in strat_opts.buttons.items()
+                             if strat['hitbox'].collidepoint(mousex, mousey)]
+
+                if not new_strat:
+                    continue
+                elif len(new_strat) > 1:
+                    raise Exception('Program error, two button strats clicked simultaneously?')
+                else:
+                    grid.set_edge_strat(new_strat[0])
+
             elif event.type == SIMULATEGENERATION:
                 grid.turn()
                 pygame.event.clear(SIMULATEGENERATION)
 
-        disp.fill(white)
-        pygame.draw.line(disp, black, (width, 0), (width, height))
+        disp.fill(graphics.WHITE)
+        pygame.draw.line(disp, graphics.BLACK, (width, 0), (width, height))
 
-        for button in control_buttons.values():
-            pygame.draw.rect(disp, button['color'][simulate], button['rect'], width=button['width'][simulate])
-            disp.blit(button['text'], button['text_pos'])
+        control_buttons['Start'].draw(not simulate)
+        control_buttons['Stop'].draw(simulate)
+        control_buttons['Reset'].draw(simulate)
 
-        for key, strat in strat_opts.items():
-            pygame.draw.circle(disp, black, strat['circle_pos'], strat['radius'],
-                               width=0 if grid.edge_strat == key else 1)
-            disp.blit(strat['text'], strat['text_pos'])
+        strat_opts.draw()
 
-        draw_grid(disp, grid)
+        graphics.draw_grid(disp, grid, cell_size)
 
         if not grid.grid.any():
             simulate = False
