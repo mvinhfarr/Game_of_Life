@@ -89,8 +89,8 @@ class RadioButtons:
 
         self.buttons = self.build_buttons()
 
-        self.selected = self.opts[0]
-        self.width = lambda key: 0 if key == self.selected else 1
+        # self.selected = self.opts[0]
+        self.width = lambda key, selected: 0 if key == selected else 1
 
     def build_buttons(self):
         buttons = {}
@@ -112,7 +112,7 @@ class RadioButtons:
             buttons[self.opts[n]] = opt_button
         return buttons
 
-    def draw(self):
+    def draw(self, selected):
         for key, btn in self.buttons.items():
-            pygame.draw.circle(self.disp, BLACK, btn['circle_pos'], self.radius, width=self.width(key))
+            pygame.draw.circle(self.disp, BLACK, btn['circle_pos'], self.radius, width=self.width(key, selected))
             self.disp.blit(btn['text'], btn['text_pos'])

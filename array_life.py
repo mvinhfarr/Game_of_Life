@@ -72,6 +72,10 @@ class Board:
             raise ValueError('Invalid edge stratege. Expected one of %s' % self.strats)
         self.edge_strat = strat
 
+    def set_grid(self, arr):
+        if isinstance(arr, np.ndarray) and arr.dtype == np.bool_:
+            self.grid = arr
+
     def fill_random(self, count, spread=None):
         if spread is None:
             fill_rows = 0, self.height

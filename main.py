@@ -28,9 +28,9 @@ def build_control(disp, font):
     top_ycenter = 10 + int(font_height * 1.5)
     ypad = 2 * font_height
 
-    labels = 'Start', 'Stop', 'Reset'
-    colors_true = graphics.GREEN, graphics.RED, graphics.GREY
-    colors_false = graphics.GREY_GREEN, graphics.GREY_RED, graphics.BLACK
+    labels = 'Start', 'Stop', 'Reset', 'Restart'
+    colors_true = graphics.GREEN, graphics.RED, graphics.BLACK, graphics.BLACK
+    colors_false = graphics.GREY_GREEN, graphics.GREY_RED, graphics.GREY, graphics.GREY
     # button_state = True, False, True
 
     control_buttons = {}
@@ -84,14 +84,16 @@ def main(grid):
     #   - tick speed
     #   - init options
 
+    saved_board = None
+
     simulate = False
     clock = pygame.time.Clock()
 
     print(pygame.time.get_ticks())
 
     while True:
-        # clock.tick(60)
-        # print(clock.tick())
+        # clock.tick(10)
+        print(clock.tick())
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -101,6 +103,7 @@ def main(grid):
                 mousex, mousey = pygame.mouse.get_pos()
 
                 if control_buttons['Start'].rect.collidepoint(mousex, mousey):
+                    saved_board = grid.grid.copy()
                     simulate = True
                     pygame.time.set_timer(SIMULATEGENERATION, sim_speed)
                 elif control_buttons['Stop'].rect.collidepoint(mousex, mousey):
@@ -109,6 +112,8 @@ def main(grid):
                 elif control_buttons['Reset'].rect.collidepoint(mousex, mousey):
                     if not simulate:
                         grid.reset_grid()
+                elif control_buttons['Restart'].rect.collidepoint(mousex, mousey):
+                    grid.set_grid(saved_board)
                 elif (0 <= mousex <= width) and (0 <= mousey <= height):  # Handle all mouse clicks on the grid
                     if not simulate:
                         change_grid(grid, mousex, mousey)
@@ -132,9 +137,10 @@ def main(grid):
 
         control_buttons['Start'].draw(not simulate)
         control_buttons['Stop'].draw(simulate)
-        control_buttons['Reset'].draw(simulate)
+        control_buttons['Reset'].draw(not simulate)
+        control_buttons['Restart'].draw(True)
 
-        strat_opts.draw()
+        strat_opts.draw(grid.edge_strat)
 
         graphics.draw_grid(disp, grid, cell_size)
 
