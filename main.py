@@ -28,7 +28,7 @@ def build_control(disp, font):
     top_ycenter = 10 + int(font_height * 1.5)
     ypad = 2 * font_height
 
-    labels = 'Start', 'Stop', 'Reset', 'Restart'
+    labels = 'Start', 'Stop', 'Restart', 'Reset'
     colors_true = graphics.GREEN, graphics.RED, graphics.BLACK, graphics.BLACK
     colors_false = graphics.GREY_GREEN, graphics.GREY_RED, graphics.GREY, graphics.GREY
     # button_state = True, False, True
@@ -103,12 +103,14 @@ def main(grid):
                 mousex, mousey = pygame.mouse.get_pos()
 
                 if control_buttons['Start'].rect.collidepoint(mousex, mousey):
-                    saved_board = grid.grid.copy()
-                    simulate = True
-                    pygame.time.set_timer(SIMULATEGENERATION, sim_speed)
+                    if not simulate:
+                        saved_board = grid.grid.copy()
+                        simulate = True
+                        pygame.time.set_timer(SIMULATEGENERATION, sim_speed)
                 elif control_buttons['Stop'].rect.collidepoint(mousex, mousey):
-                    simulate = False
-                    pygame.time.set_timer(SIMULATEGENERATION, 0)
+                    if simulate:
+                        simulate = False
+                        pygame.time.set_timer(SIMULATEGENERATION, 0)
                 elif control_buttons['Reset'].rect.collidepoint(mousex, mousey):
                     if not simulate:
                         grid.reset_grid()
@@ -118,15 +120,16 @@ def main(grid):
                     if not simulate:
                         change_grid(grid, mousex, mousey)
 
-                new_strat = [key for key, strat in strat_opts.buttons.items()
-                             if strat['hitbox'].collidepoint(mousex, mousey)]
+                if not simulate:
+                    new_strat = [key for key, strat in strat_opts.buttons.items()
+                                 if strat['hitbox'].collidepoint(mousex, mousey)]
 
-                if not new_strat:
-                    continue
-                elif len(new_strat) > 1:
-                    raise Exception('Program error, two button strats clicked simultaneously?')
-                else:
-                    grid.set_edge_strat(new_strat[0])
+                    if not new_strat:
+                        continue
+                    elif len(new_strat) > 1:
+                        raise Exception('Program error, two button strats clicked simultaneously?')
+                    else:
+                        grid.set_edge_strat(new_strat[0])
 
             elif event.type == SIMULATEGENERATION:
                 grid.turn()
