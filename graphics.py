@@ -25,6 +25,17 @@ def draw_grid(disp, grid, size):
         pygame.draw.rect(disp, BLACK, (j * size, i * size, size, size), width=(0 if cell else 1))
 
 
+class Grid:
+    def __init__(self, grid, disp, cell_size):
+        self.grid = grid
+        self.size = grid.size
+
+        self.disp = disp
+        self.cell_size = cell_size
+
+
+
+
 class BooleanButton:
     def __init__(self, disp, font, text='', pos=(0, 0), size=None, color_true=BLACK, color_false=GREY):
         """

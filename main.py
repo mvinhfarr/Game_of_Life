@@ -1,6 +1,6 @@
-import sys
-import timeit
-import numpy as np
+# import sys
+# import timeit
+# import numpy as np
 import pygame
 
 import array_life
@@ -70,8 +70,9 @@ def main(grid):
     # Initialize the pygame window. Size is the size of the grid plus a menu bar on the right
     pygame.init()
     disp = pygame.display.set_mode((int(width * 1.25), height))
-    pygame.display.update()
     pygame.display.set_caption('Game of Life -- MVF')
+    icon = pygame.image.load('game_of_life_icon_32x32.png')
+    pygame.display.set_icon(icon)
     disp.fill(graphics.WHITE)
 
     # Initialize font
@@ -91,14 +92,14 @@ def main(grid):
 
     print(pygame.time.get_ticks())
 
-    while True:
+    running = True
+    while running:
         # clock.tick(10)
-        print(clock.tick())
+        # print(clock.tick())
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                running = False
             elif event.type == pygame.MOUSEBUTTONUP:
                 mousex, mousey = pygame.mouse.get_pos()
 
@@ -152,6 +153,8 @@ def main(grid):
             pygame.time.set_timer(SIMULATEGENERATION, 0)
 
         pygame.display.update()
+
+    pygame.quit()
 
 
 if __name__ == '__main__':
